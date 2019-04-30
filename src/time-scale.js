@@ -1,3 +1,7 @@
+/*
+    Time scales that is used to set the window size when looking at the number of request that can be made. Each are
+    represented in milliseconds.
+ */
 const TimeScale = {
     SECOND : 1000,
     MINUTE: 60000,
@@ -5,4 +9,4 @@ const TimeScale = {
     DAY: 86400000
 }
 
-export default TimeScale;
+module.exports = TimeScale;
