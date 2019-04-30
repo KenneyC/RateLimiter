@@ -62,7 +62,7 @@ class BucketRateLimiter {
          */
         this.getTimeRecorded = (token) => {
             return userTrack[token].timeRecord;
-        }
+        };
 
         /*
             Public getter method to get the request limit that was set.
