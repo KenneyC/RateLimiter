@@ -1,11 +1,15 @@
+const RateLimiterTemplate = require('./rate-limiter-template');
+
 /*
     A rate limiter that implements the leaky bucket algorithm.
+    Author: Kenney Chan
  */
-class BucketRateLimiter {
+class BucketRateLimiter extends RateLimiterTemplate {
     constructor(limit, timeScale) {
-        const requestLimit = limit;
-        const scale = timeScale;
-        const userTrack = {};
+        super();
+        let requestLimit = limit;
+        let scale = timeScale;
+        let userTrack = {};
         this.date = new Date();
 
         /*
@@ -30,8 +34,8 @@ class BucketRateLimiter {
             @return {object}: a response with the status code and a message according to the attempt.
          */
         this.getTicket = (token) => {
-            this.refresh(token);
             let info = userTrack[token];
+            console.log(token);
             if(info.ticket > 0) {
                 info.ticket--;
                 return {
@@ -51,7 +55,7 @@ class BucketRateLimiter {
             @param {string} token: the token that identifies the user making the request
             @return {number}: the number of tickets remaining
          */
-        this.getTicketRemaining = (token) => {
+        this.getTicketRemaining = function(token) {
             return userTrack[token].ticket;
         };
 
@@ -81,5 +85,6 @@ class BucketRateLimiter {
         };
     }
 }
+
 
 module.exports = BucketRateLimiter;

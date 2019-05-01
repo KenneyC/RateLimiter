@@ -3,7 +3,7 @@ const describe = mocha.describe;
 const chai = require('chai');
 const chaiHttp = require('chai-http');
 const TimeScale = require('../src/time-scale');
-const BucketRateLimiter = require('../src/rate-limiter');
+const BucketRateLimiter = require('../src/bucket-rate-limiter');
 
 chai.use(chaiHttp);
 chai.should();
@@ -41,52 +41,52 @@ describe('BucketRateLimiter#getTicket()', () => {
 
     it('should allow request to go through with one request', () => {
         let rl = new BucketRateLimiter(100,TimeScale.HOUR);
-        let response = rl.getTicket(token);
+        let response = rl.attemptIssueTicket(token);
         chai.assert.equal(response.statusCode,200);
     });
 
     it('should allow request to go through within limit', () => {
         let rl = new BucketRateLimiter(100,TimeScale.HOUR);
-        let response1 = rl.getTicket(token);
-        let response2 = rl.getTicket(token);
+        let response1 = rl.attemptIssueTicket(token);
+        let response2 = rl.attemptIssueTicket(token);
         chai.assert.equal(response1.statusCode, 200);
         chai.assert.equal(response2.statusCode, 200);
     });
 
     it('should decrement tickets per request', () => {
         let rl = new BucketRateLimiter(100,TimeScale.HOUR);
-        rl.getTicket(token);
+        rl.attemptIssueTicket(token);
         chai.assert.equal(rl.getTicketRemaining(token),99);
-        rl.getTicket(token);
+        rl.attemptIssueTicket(token);
         chai.assert.equal(rl.getTicketRemaining(token),98);
     });
 
     it('should not allow request to through when limit exceeded', () => {
         let rl = new BucketRateLimiter(1,TimeScale.HOUR);
-        let response1 = rl.getTicket(token);
+        let response1 = rl.attemptIssueTicket(token);
         chai.assert.equal(response1.statusCode, 200);
-        let response2 = rl.getTicket(token);
+        let response2 = rl.attemptIssueTicket(token);
         chai.assert.equal(response2.statusCode,429);
     });
 
     it('should have no interference between two different users', () => {
         let rl = new BucketRateLimiter(100,TimeScale.HOUR);
         let token2 = 'user2';
-        let response1 = rl.getTicket(token);
-        let response2 = rl.getTicket(token2);
+        let response1 = rl.attemptIssueTicket(token);
+        let response2 = rl.attemptIssueTicket(token2);
         chai.assert.equal(response1.statusCode, 200);
         chai.assert.equal(response2.statusCode, 200);
     });
 
     it('should allow request to go through after refresh', () => {
         let rl = new BucketRateLimiter(1,TimeScale.HOUR);
-        let response = rl.getTicket(token);
+        let response = rl.attemptIssueTicket(token);
         let oldTime = rl.getTimeRecorded(token);
         chai.assert.equal(response.statusCode, 200);
-        let response1 = rl.getTicket(token);
+        let response1 = rl.attemptIssueTicket(token);
         chai.assert.equal(response1.statusCode, 429);
         rl.date = new MockDateRefresh();
-        let response2 = rl.getTicket(token);
+        let response2 = rl.attemptIssueTicket(token);
         chai.assert.isTrue(rl.getTimeRecorded(token) > oldTime)
         chai.assert.equal(response2.statusCode, 200);
     });
@@ -94,9 +94,9 @@ describe('BucketRateLimiter#getTicket()', () => {
     it('should return the correct time remaining', () => {
         let rl = new BucketRateLimiter(1,TimeScale.HOUR);
         rl.date = new MockDate();
-        rl.getTicket(token);
+        rl.attemptIssueTicket(token);
         rl.date = new MockDateTimeRemaining();
-        let response = rl.getTicket(token);
+        let response = rl.attemptIssueTicket(token);
         chai.assert.equal(response.body, "Rate limit exceeded. Try again in 3599999 seconds")
     })
 });
