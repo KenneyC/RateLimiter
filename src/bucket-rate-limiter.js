@@ -54,7 +54,7 @@ class BucketRateLimiter extends RateLimiterTemplate {
             @param {string} token: the token that identifies the user making the request
             @return {number}: the number of tickets remaining
          */
-        this.getTicketRemaining = function(token) {
+        this.getTicketRemaining = (token) => {
             return userTrack[token].ticket;
         };
 
