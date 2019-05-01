@@ -1,6 +1,7 @@
 /*
     A abstract class that represents a rate limiter. This class follows the template method design pattern to allow
     extension and modification to the rate limiting algorithm.
+    Author: Kenney Chan
  */
 class RateLimiterTemplate {
 
