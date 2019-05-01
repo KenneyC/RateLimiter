@@ -28,14 +28,13 @@ class BucketRateLimiter extends RateLimiterTemplate {
         };
 
         /*
-            Attempts to get a ticket to make a request. It first attempts to refresh the number of tickets to the latest
-            state. Then it checks if a ticket is available, returns the correct response according to the attempt.
+            Attempts to get a ticket to make a request. It checks if a ticket is available and
+            returns the correct response according to the attempt.
             @param {string} token: the token that identifies the user making the request
             @return {object}: a response with the status code and a message according to the attempt.
          */
         this.getTicket = (token) => {
             let info = userTrack[token];
-            console.log(token);
             if(info.ticket > 0) {
                 info.ticket--;
                 return {
