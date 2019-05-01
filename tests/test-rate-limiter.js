@@ -34,7 +34,6 @@ describe('BucketRateLimiter#getTicket()', () => {
 
     class MockDateTimeRemaining {
         getTime() {
-            let date = new Date();
             return 12346;
         }
     }
