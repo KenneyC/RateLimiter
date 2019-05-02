@@ -127,7 +127,7 @@ describe('application#app', () => {
         });
 
         it('should reject after making too many requests and does not interfere with a different user', () => {
-            for(let i =0;i<4;i++) {
+            for(let i =0;i<99;i++) {
                 testSuccessfulRequest("user_1")
             }
             chai.request(app).get('/?id=user_1')

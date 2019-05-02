@@ -9,7 +9,7 @@ const TimeScale = require('./time-scale');
 
 const port = 3000;
 const app = express();
-const rateLimiter = new BucketRateLimiter(5,TimeScale.MINUTE);
+const rateLimiter = new BucketRateLimiter(100,TimeScale.HOUR);
 
 app.use('/' , (req,res,next) => {
     let id = req.query.id;
