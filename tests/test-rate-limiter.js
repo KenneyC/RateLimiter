@@ -115,33 +115,30 @@ describe('application#app', () => {
         app = require ('../src/application');
     });
     describe('GET /', () => {
-        it('should successfully make a request', (done) => {
+        let testSuccessfulRequest = (id) => {
+            chai.request(app).get("/?id="+id).end((err,res) => {
+                chai.expect(res).to.have.status(200);
+                res.text.should.be.eq('Request granted');
+            });
+        }
+
+        it('should successfully make a request', () => {
             chai.request(app).get('/?id=user_1')
                 .end((err,res) => {
                     chai.expect(res).to.have.status(200);
                     res.text.should.be.eq('Request granted');
-                    done();
                 });
         });
 
-        it('should reject after making too many requests and does not interfere with a different user', (done) => {
+        it('should reject after making too many requests and does not interfere with a different user', () => {
             for(let i =0;i<4;i++) {
-                chai.request(app).get('/?id=user_1')
-                    .end((err,res) => {
-                        chai.expect(res).to.have.status(200);
-                        res.text.should.be.eq('Request granted');
-                    });
+                testSuccessfulRequest("user_1")
             }
             chai.request(app).get('/?id=user_1')
                 .end((err,res) => {
                     chai.expect(res).to.have.status(429);
                 });
-            chai.request(app).get('/?id=user_2')
-                .end((err,res) => {
-                    chai.expect(res).to.have.status(200);
-                    res.text.should.be.eq('Request granted');
-                    done();
-                });
+            testSuccessfulRequest("user_2");
         })
     });
 });
