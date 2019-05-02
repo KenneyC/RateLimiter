@@ -1,3 +1,8 @@
+/*
+    Script that turns on a web application with rate-limiting functionality.
+    Author: Kenney Chan
+ */
+
 const express = require('express');
 const BucketRateLimiter = require('./rate-limiter/bucket-rate-limiter');
 const TimeScale = require('./time-scale');
