@@ -42,10 +42,7 @@ class BucketRateLimiter extends RateLimiterTemplate {
                     body: 'Request granted'
                 };
             } else {
-                return {
-                    statusCode: 429,
-                    body: 'Rate limit exceeded. Try again in '+ (userTrack[token].timeRecord + scale - this.date.getTime()).toString()+' seconds'
-                }
+                throw new Error('Rate limit exceeded. Try again in '+ (userTrack[token].timeRecord + scale - this.date.getTime()).toString()+' seconds');
             }
         };
 

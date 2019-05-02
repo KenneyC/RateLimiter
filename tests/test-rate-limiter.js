@@ -3,7 +3,7 @@ const describe = mocha.describe;
 const chai = require('chai');
 const chaiHttp = require('chai-http');
 const TimeScale = require('../src/time-scale');
-const BucketRateLimiter = require('../src/bucket-rate-limiter');
+const BucketRateLimiter = require('../src/rate-limiter/bucket-rate-limiter');
 
 chai.use(chaiHttp);
 chai.should();
@@ -64,8 +64,11 @@ describe('BucketRateLimiter#getTicket()', () => {
         let rl = new BucketRateLimiter(1,TimeScale.HOUR);
         let response1 = rl.attemptIssueTicket(token);
         chai.assert.equal(response1.statusCode, 200);
-        let response2 = rl.attemptIssueTicket(token);
-        chai.assert.equal(response2.statusCode,429);
+        try {
+            rl.attemptIssueTicket(token);
+        } catch(error) {
+            chai.assert(error.message,'Rate limit exceeded. Try again in 3600000 seconds');
+        }
     });
 
     it('should have no interference between two different users', () => {
@@ -82,8 +85,11 @@ describe('BucketRateLimiter#getTicket()', () => {
         let response = rl.attemptIssueTicket(token);
         let oldTime = rl.getTimeRecorded(token);
         chai.assert.equal(response.statusCode, 200);
-        let response1 = rl.attemptIssueTicket(token);
-        chai.assert.equal(response1.statusCode, 429);
+        try {
+            rl.attemptIssueTicket(token);
+        } catch(error) {
+            chai.assert(error.message,'Rate limit exceeded. Try again in 3600000 seconds');
+        }
         rl.date = new MockDateRefresh();
         let response2 = rl.attemptIssueTicket(token);
         chai.assert.isTrue(rl.getTimeRecorded(token) > oldTime)
@@ -95,7 +101,48 @@ describe('BucketRateLimiter#getTicket()', () => {
         rl.date = new MockDate();
         rl.attemptIssueTicket(token);
         rl.date = new MockDateTimeRemaining();
-        let response = rl.attemptIssueTicket(token);
-        chai.assert.equal(response.body, "Rate limit exceeded. Try again in 3599999 seconds")
+        try {
+            rl.attemptIssueTicket(token);
+        } catch(error) {
+            chai.assert(error.message,'Rate limit exceeded. Try again in 3599999 seconds');
+        }
     })
 });
+
+describe('application#app', () => {
+    let app;
+    beforeEach(() => {
+        app = require ('../src/application');
+    });
+    describe('GET /', () => {
+        it('should successfully make a request', (done) => {
+            chai.request(app).get('/?id=user_1')
+                .end((err,res) => {
+                    chai.expect(res).to.have.status(200);
+                    res.text.should.be.eq('Request granted');
+                    done();
+                });
+        });
+
+        it('should reject after making too many requests and does not interfere with a different user', (done) => {
+            for(let i =0;i<4;i++) {
+                chai.request(app).get('/?id=user_1')
+                    .end((err,res) => {
+                        chai.expect(res).to.have.status(200);
+                        res.text.should.be.eq('Request granted');
+                    });
+            }
+            chai.request(app).get('/?id=user_1')
+                .end((err,res) => {
+                    chai.expect(res).to.have.status(429);
+                });
+            chai.request(app).get('/?id=user_2')
+                .end((err,res) => {
+                    chai.expect(res).to.have.status(200);
+                    res.text.should.be.eq('Request granted');
+                    done();
+                });
+        })
+    });
+});
+
