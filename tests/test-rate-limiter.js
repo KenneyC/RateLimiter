@@ -38,6 +38,14 @@ describe('BucketRateLimiter#getTicket()', () => {
         }
     }
 
+    let testForError = (rl,time) => {
+        try {
+            rl.attemptIssueTicket(token);
+        } catch(error) {
+            chai.assert(error.message,"Rate limit exceeded. Try again in "+time+" seconds");
+        }
+    }
+
     it('should allow request to go through with one request', () => {
         let rl = new BucketRateLimiter(100,TimeScale.HOUR);
         let response = rl.attemptIssueTicket(token);
@@ -64,11 +72,7 @@ describe('BucketRateLimiter#getTicket()', () => {
         let rl = new BucketRateLimiter(1,TimeScale.HOUR);
         let response1 = rl.attemptIssueTicket(token);
         chai.assert.equal(response1.statusCode, 200);
-        try {
-            rl.attemptIssueTicket(token);
-        } catch(error) {
-            chai.assert(error.message,'Rate limit exceeded. Try again in 3600000 seconds');
-        }
+        testForError(rl,"3600000");
     });
 
     it('should have no interference between two different users', () => {
@@ -85,11 +89,7 @@ describe('BucketRateLimiter#getTicket()', () => {
         let response = rl.attemptIssueTicket(token);
         let oldTime = rl.getTimeRecorded(token);
         chai.assert.equal(response.statusCode, 200);
-        try {
-            rl.attemptIssueTicket(token);
-        } catch(error) {
-            chai.assert(error.message,'Rate limit exceeded. Try again in 3600000 seconds');
-        }
+        testForError(rl,"3600000");
         rl.date = new MockDateRefresh();
         let response2 = rl.attemptIssueTicket(token);
         chai.assert.isTrue(rl.getTimeRecorded(token) > oldTime)
@@ -101,11 +101,7 @@ describe('BucketRateLimiter#getTicket()', () => {
         rl.date = new MockDate();
         rl.attemptIssueTicket(token);
         rl.date = new MockDateTimeRemaining();
-        try {
-            rl.attemptIssueTicket(token);
-        } catch(error) {
-            chai.assert(error.message,'Rate limit exceeded. Try again in 3599999 seconds');
-        }
+        testForError(rl,"3599999");
     })
 });
 
