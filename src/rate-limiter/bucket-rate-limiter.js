@@ -1,7 +1,7 @@
 const RateLimiterTemplate = require('./rate-limiter-template');
 
 /*
-    A rate limiter that implements the leaky bucket algorithm.
+    A rate limiter that implements the token bucket algorithm.
     Author: Kenney Chan
  */
 class BucketRateLimiter extends RateLimiterTemplate {
